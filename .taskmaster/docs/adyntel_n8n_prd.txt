@@ -11,7 +11,7 @@ The Adyntel n8n Custom Node Package is a community integration that enables n8n 
 
 **How it works:** The node accepts company domain input, authenticates using stored credentials (API key, email, company domain), and makes POST requests to the `/facebook` endpoint at `api.adyntel.com` to retrieve Facebook ads data.
 
-## Adyntel Pics API Node (In Development)
+## Adyntel Pics API Node (part of the template that was used as a starting point, needs to be removed)
 **What it does:** A secondary node designed to handle image/creative retrieval from Adyntel's picture API.
 
 **Why it's important:** Complements the main Adyntel node by enabling users to fetch ad creatives, images, and visual assets associated with Facebook ads for comprehensive competitive analysis.
@@ -297,6 +297,114 @@ Body: {
 - **Package Configuration:** Basic setup complete, needs refinement for publication
 - **Documentation:** Starter README present, needs replacement with actual documentation
 - **Testing:** No test infrastructure currently
+
+## Development Workflow & Version Control
+
+This project uses **git-flow-next** as the branching strategy to maintain clean, organized development.
+
+### Branch Strategy
+- **master** - Production-ready code, stable releases only
+- **develop** - Integration branch for ongoing development
+- **feature/** - Individual feature branches for new functionality
+- **bugfix/** - Bug fix branches
+- **release/** - Release preparation branches
+- **hotfix/** - Emergency fixes for production issues
+
+### Feature Development Workflow
+
+**IMPORTANT:** Each feature, enhancement, or significant change MUST be developed in its own separate branch.
+
+#### Standard Feature Development Process:
+1. **Start from develop branch:**
+   ```
+   git checkout develop
+   git pull origin develop
+   ```
+
+2. **Create a feature branch:**
+   ```
+   git checkout -b feature/descriptive-feature-name
+   ```
+   Examples:
+   - `feature/add-error-handling`
+   - `feature/implement-pagination`
+   - `feature/adyntel-pics-node`
+   - `feature/dynamic-company-domain`
+
+3. **Develop and commit in the feature branch:**
+   - Make incremental commits with clear messages
+   - Keep the feature focused and atomic
+   - Test thoroughly before merging
+
+4. **Merge back to develop when complete:**
+   ```
+   git checkout develop
+   git merge feature/descriptive-feature-name
+   ```
+
+5. **Delete the feature branch after merge:**
+   ```
+   git branch -d feature/descriptive-feature-name
+   ```
+
+### Why Separate Branches?
+
+1. **Isolation:** Each feature develops independently without affecting other work
+2. **Code Review:** Easier to review changes when they're focused on a single feature
+3. **Rollback:** If a feature breaks something, it's easy to identify and revert
+4. **Parallel Development:** Multiple features can be worked on simultaneously
+5. **Clean History:** Git history remains organized and understandable
+6. **Testing:** Features can be tested individually before integration
+
+### Branch Naming Conventions
+
+- `feature/` - New features or enhancements
+- `bugfix/` - Bug fixes for develop branch
+- `hotfix/` - Emergency fixes for production (branch from master)
+- `release/` - Preparing a new production release
+- `docs/` - Documentation-only changes
+- `refactor/` - Code refactoring without changing functionality
+- `test/` - Adding or updating tests
+
+### Example Workflow for This Project
+
+For implementing error handling from the roadmap:
+```bash
+# Start feature
+git checkout develop
+git checkout -b feature/add-error-handling
+
+# Work on the feature
+# ... make changes to Adyntel.node.ts ...
+git add nodes/Adyntel/Adyntel.node.ts
+git commit -m "Add error handling for API failures"
+
+# ... add validation ...
+git add nodes/Adyntel/Adyntel.node.ts
+git commit -m "Add input validation for company domain"
+
+# Complete feature
+git checkout develop
+git merge feature/add-error-handling
+git branch -d feature/add-error-handling
+```
+
+### Rules of Engagement
+
+✅ **DO:**
+- Create a new branch for every feature, no matter how small
+- Keep branches short-lived (merge within days, not weeks)
+- Write descriptive branch names
+- Commit frequently with clear messages
+- Test before merging to develop
+- Delete branches after merging
+
+❌ **DON'T:**
+- Work directly on master or develop branches
+- Mix multiple unrelated features in one branch
+- Let feature branches diverge too far from develop
+- Force push to shared branches
+- Merge untested code
 
 ## Technical Specifications
 
