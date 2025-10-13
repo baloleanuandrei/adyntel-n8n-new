@@ -1,0 +1,20 @@
+{
+	"node": "n8n-nodes-base.Adyntel",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": [
+		"Miscellaneous"
+	],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://api.adyntel.com/"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://api.adyntel.com/"
+			}
+		]
+	}
+}

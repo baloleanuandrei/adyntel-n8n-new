@@ -1,0 +1,374 @@
+<context>
+# Overview
+The Adyntel n8n Custom Node Package is a community integration that enables n8n workflow automation users to access Adyntel's Facebook advertising intelligence API directly within their automation workflows. This package solves the problem of manually retrieving competitive Facebook ads data by providing a seamless, no-code interface for accessing Adyntel's API services. It's valuable for marketers, competitive intelligence analysts, and automation engineers who need to integrate Facebook ads data into their broader automation workflows, data pipelines, or reporting systems.
+
+# Core Features
+
+## Adyntel Facebook API Node
+**What it does:** Provides a declarative-style n8n node that fetches Facebook ads data for specified company domains through the Adyntel API.
+
+**Why it's important:** This is the primary integration point that allows users to retrieve competitive Facebook advertising data as part of automated workflows, eliminating manual API calls and reducing technical barriers for non-developers.
+
+**How it works:** The node accepts company domain input, authenticates using stored credentials (API key, email, company domain), and makes POST requests to the `/facebook` endpoint at `api.adyntel.com` to retrieve Facebook ads data.
+
+## Adyntel Pics API Node (In Development)
+**What it does:** A secondary node designed to handle image/creative retrieval from Adyntel's picture API.
+
+**Why it's important:** Complements the main Adyntel node by enabling users to fetch ad creatives, images, and visual assets associated with Facebook ads for comprehensive competitive analysis.
+
+**How it works:** Separate node with its own credentials configuration, designed to work independently or in conjunction with the main Adyntel node in workflows.
+
+## Credential Management
+**What it does:** Secure storage and management of Adyntel API credentials including API key, email, and company domain.
+
+**Why it's important:** Ensures secure credential storage following n8n best practices, allowing reuse across multiple nodes and workflows without exposing sensitive information.
+
+**How it works:** Implements n8n's ICredentialType interface with encrypted password storage for API keys and validates credentials through generic authentication.
+
+# User Experience
+
+## User Personas
+
+### Marketing Analyst
+- **Need:** Track competitor Facebook ad campaigns automatically
+- **Goal:** Integrate competitive intelligence into daily reports
+- **Technical Level:** Low to medium; comfortable with no-code tools
+
+### Data Engineer
+- **Need:** Build automated data pipelines for ad intelligence
+- **Goal:** Feed Facebook ads data into data warehouses or analytics platforms
+- **Technical Level:** High; familiar with APIs and automation
+
+### Agency Owner
+- **Need:** Monitor multiple client competitors efficiently
+- **Goal:** Provide competitive insights as part of service offering
+- **Technical Level:** Medium; uses automation tools regularly
+
+## Key User Flows
+
+### Initial Setup Flow
+1. Install n8n-nodes-adyntel package via npm
+2. Link package to local n8n instance
+3. Configure Adyntel API credentials in n8n
+4. Add Adyntel node to workflow canvas
+5. Select "Get Facebook Ads" operation
+6. Execute workflow to retrieve data
+
+### Ongoing Usage Flow
+1. Open existing workflow with Adyntel node
+2. Optionally modify company domain or other parameters
+3. Connect to downstream nodes (databases, spreadsheets, notifications)
+4. Schedule or trigger workflow execution
+5. Access Facebook ads data in subsequent workflow steps
+
+## UI/UX Considerations
+- **Simple Operation Selection:** Currently single operation ("Get Facebook Ads") with room for expansion
+- **Credential Reusability:** Store credentials once, use across multiple nodes and workflows
+- **Clear Visual Identity:** Custom Adyntel SVG icon for easy node identification on canvas
+- **Standard n8n Patterns:** Follows n8n's declarative routing and parameter conventions for familiarity
+- **Error Handling:** Needs clear error messages for API failures, authentication issues, and invalid domains
+</context>
+
+<PRD>
+# Technical Architecture
+
+## System Components
+
+### Node Package Structure
+- **Package Name:** `n8n-nodes-adyntel`
+- **Package Type:** Community node package for n8n
+- **Build System:** TypeScript compilation + Gulp for asset management
+- **Distribution:** Compiled JavaScript in `/dist` directory
+
+### Core Components
+1. **Adyntel.node.ts** - Main node implementation for Facebook ads retrieval
+2. **adyntelPics.node.ts** - Secondary node for image/creative retrieval (in development)
+3. **AdyntelApi.credentials.ts** - Credential definition for main Adyntel API
+4. **adyntelPicsApi.credentials.ts** - Credential definition for pics API
+
+### Build Pipeline
+- TypeScript compiler for `.ts` to `.js` conversion
+- Gulp tasks for copying SVG icons to dist
+- Source maps generation for debugging
+- ESLint for code quality and n8n-specific validation
+
+## Data Models
+
+### Credentials Model (AdyntelApi)
+```typescript
+{
+  apiKey: string (password-protected),
+  email: string,
+  companyDomain: string
+}
+```
+
+### API Request Model
+```typescript
+POST /facebook
+Body: {
+  api_key: string,
+  email: string,
+  company_domain: string
+}
+```
+
+### Node Configuration
+- **Operation:** "getFacebookAds" (default and only current operation)
+- **Node Type:** Transform node (processing/enriching data)
+- **Connection Type:** Main input/output for workflow connectivity
+
+## APIs and Integrations
+
+### Adyntel API Integration
+- **Base URL:** `https://api.adyntel.com`
+- **Endpoint:** POST `/facebook`
+- **Authentication:** Body-based credentials (api_key, email, company_domain)
+- **Request Format:** JSON
+- **Response Format:** JSON
+- **Headers:**
+  - Accept: application/json
+  - Content-Type: application/json
+
+### n8n Framework Integration
+- **n8n API Version:** 1
+- **Node Framework:** Declarative routing pattern
+- **Credential Integration:** Generic authentication type
+- **Workflow Integration:** Standard Main node connection type
+
+## Infrastructure Requirements
+
+### Development Environment
+- **Node.js:** Version 20.15 or higher
+- **TypeScript:** Version 5.8.2
+- **n8n:** Global installation required for local testing
+- **Dependencies:** n8n-workflow (peer dependency)
+
+### Build Dependencies
+- eslint + n8n-nodes-base plugin for validation
+- Prettier for code formatting
+- Gulp for build automation
+- Rimraf for clean builds
+
+### Deployment/Distribution
+- **Package Registry:** npm (npmjs.com)
+- **Installation Method:** `npm install n8n-nodes-adyntel`
+- **n8n Integration:** Automatic discovery via package.json n8n configuration
+- **Optional:** n8n cloud verification for community node directory
+
+# Development Roadmap
+
+## Phase 1: MVP - Core Facebook Ads Functionality ✓ (Mostly Complete)
+- [x] Basic n8n node structure and TypeScript setup
+- [x] AdyntelApi credential definition with API key, email, domain
+- [x] Adyntel node with "Get Facebook Ads" operation
+- [x] Declarative routing to POST /facebook endpoint
+- [x] Build pipeline (TypeScript + Gulp)
+- [x] Basic package.json configuration
+- [ ] Complete documentation (README update)
+- [ ] Error handling and validation
+- [ ] Testing infrastructure
+
+## Phase 2: Enhanced Functionality
+- [ ] Complete adyntelPics node implementation
+- [ ] Add dynamic parameter inputs (company_domain as node parameter instead of credential)
+- [ ] Multiple operations support:
+  - Get ads by date range
+  - Get ads by campaign type
+  - Search ads by keywords
+  - Filter by ad status (active/inactive)
+- [ ] Response data transformation and formatting
+- [ ] Pagination handling for large datasets
+- [ ] Rate limiting and retry logic
+- [ ] Comprehensive error messages
+
+## Phase 3: Advanced Features
+- [ ] Webhook support for real-time ad monitoring
+- [ ] Bulk operations (multiple domains in single request)
+- [ ] Data caching to reduce API calls
+- [ ] Advanced filtering and search capabilities
+- [ ] Ad creative download integration with adyntelPics node
+- [ ] Metadata enrichment (ad spend estimates, performance metrics)
+- [ ] Export formats (CSV, JSON, structured data)
+
+## Phase 4: Production Ready
+- [ ] Comprehensive unit and integration tests
+- [ ] E2E testing with actual n8n workflows
+- [ ] Complete API documentation
+- [ ] User guide with workflow examples
+- [ ] Performance optimization
+- [ ] Security audit
+- [ ] npm publication
+- [ ] n8n community node submission
+
+## Phase 5: Ecosystem Integration
+- [ ] Pre-built workflow templates
+- [ ] Integration examples with popular services (Google Sheets, Airtable, databases)
+- [ ] Advanced workflow recipes (competitor monitoring, reporting dashboards)
+- [ ] Community support and issue resolution
+- [ ] Feature requests and roadmap updates
+
+# Logical Dependency Chain
+
+## Foundation Layer (Must Build First)
+1. **Credential System** - Without secure credential storage, nodes cannot authenticate
+2. **Build Infrastructure** - TypeScript compilation and asset management must work before node development
+3. **Basic Node Structure** - Core Adyntel node with minimal functionality to validate architecture
+
+## Visible/Usable Milestone 1
+4. **Working "Get Facebook Ads" Operation** - First tangible functionality that users can test
+5. **Local Testing Setup** - Ability to link and test node in local n8n instance
+6. **Basic Documentation** - README with installation and usage instructions
+
+## Incremental Enhancement Layer
+7. **Error Handling** - Make the basic operation robust before adding more features
+8. **Dynamic Parameters** - Move company_domain from credentials to node parameters for flexibility
+9. **AdyntelPics Node** - Secondary node for complementary functionality
+
+## Advanced Capabilities Layer
+10. **Multiple Operations** - Expand Adyntel node with date filters, search, pagination
+11. **Data Transformation** - Format output for easy consumption in downstream nodes
+12. **Performance Optimization** - Caching, rate limiting, retry logic
+
+## Production Readiness Layer
+13. **Testing Suite** - Comprehensive tests before public release
+14. **Complete Documentation** - User guides, API docs, workflow examples
+15. **npm Publication** - Make available to community
+
+## Post-Launch Layer
+16. **Workflow Templates** - Pre-built solutions for common use cases
+17. **Community Engagement** - Support, features, iterations based on feedback
+
+# Risks and Mitigations
+
+## Technical Challenges
+
+**Risk:** Adyntel API changes or rate limiting could break the integration
+- **Mitigation:** Implement version detection, graceful degradation, and configurable retry logic with exponential backoff
+
+**Risk:** n8n framework updates may introduce breaking changes
+- **Mitigation:** Pin peer dependency versions, maintain compatibility matrix, regular testing against n8n updates
+
+**Risk:** Credential security vulnerabilities
+- **Mitigation:** Follow n8n security best practices, use password-type fields, never log credentials, security audit before publication
+
+**Risk:** Large API responses could cause memory issues in workflows
+- **Mitigation:** Implement pagination, streaming responses, configurable result limits, and chunking for large datasets
+
+## MVP Definition Challenges
+
+**Risk:** Scope creep - trying to support all possible Adyntel API features at once
+- **Mitigation:** MVP = Single working operation ("Get Facebook Ads") with basic error handling and documentation. Everything else is post-MVP.
+
+**Risk:** Over-engineering the credential system before understanding actual usage patterns
+- **Mitigation:** Start with simple credential model (API key + email + domain). Refactor to more sophisticated auth only if needed.
+
+**Risk:** Building adyntelPics node before main Adyntel node is production-ready
+- **Mitigation:** Complete, test, and document Adyntel node first. Use lessons learned for adyntelPics implementation.
+
+## Resource Constraints
+
+**Risk:** Limited knowledge of Adyntel API capabilities and response formats
+- **Mitigation:** Test extensively with real API, document response schemas, build flexible data handling
+
+**Risk:** Maintaining compatibility with both local n8n and n8n cloud
+- **Mitigation:** Follow n8n community node guidelines strictly, test in both environments before publication
+
+**Risk:** Time investment in testing and documentation
+- **Mitigation:** Automate testing where possible, create documentation templates, leverage n8n community examples
+
+## Distribution and Adoption
+
+**Risk:** Package not discoverable or installable
+- **Mitigation:** Follow npm and n8n publication checklists, test installation process, provide clear installation docs
+
+**Risk:** Users encounter setup difficulties
+- **Mitigation:** Provide step-by-step setup guide, video walkthrough, example workflows, troubleshooting section
+
+**Risk:** Breaking changes in updates affect existing users
+- **Mitigation:** Semantic versioning, changelog, migration guides, deprecation warnings
+
+# Appendix
+
+## Current Implementation Status
+- **Adyntel Node:** Basic structure complete, single operation implemented
+- **AdyntelPics Node:** File structure exists, implementation incomplete
+- **Build System:** Functional with TypeScript + Gulp
+- **Package Configuration:** Basic setup complete, needs refinement for publication
+- **Documentation:** Starter README present, needs replacement with actual documentation
+- **Testing:** No test infrastructure currently
+
+## Technical Specifications
+
+### n8n Node Configuration
+```json
+{
+  "n8nNodesApiVersion": 1,
+  "credentials": [
+    "dist/credentials/AdyntelApi.credentials.js"
+  ],
+  "nodes": [
+    "dist/nodes/Adyntel/Adyntel.node.js"
+  ]
+}
+```
+
+### File Structure
+```
+/credentials
+  - AdyntelApi.credentials.ts (Main API credentials)
+  - adyntelPicsApi.credentials.ts (Pics API credentials)
+/nodes
+  /Adyntel
+    - Adyntel.node.ts (Main node implementation)
+    - Adyntel.node.json (Node metadata)
+    - adyntel.svg (Node icon)
+  /adyntelPics
+    - adyntelPics.node.ts (Pics node - incomplete)
+    - adyntelpics.node.json
+    - adyntelpics.svg
+/dist (Build output)
+```
+
+### Dependencies Analysis
+- **Peer Dependencies:** n8n-workflow (user's n8n installation)
+- **Dev Dependencies:** TypeScript, ESLint, Gulp, Prettier, n8n linting plugin
+- **Runtime Dependencies:** task-master-ai (potentially for project management)
+
+## Research Findings
+
+### n8n Community Node Best Practices
+1. Use declarative routing for simple API calls
+2. Implement proper credential encryption
+3. Provide clear operation descriptions
+4. Follow n8n naming conventions
+5. Include comprehensive error handling
+6. Supply example workflows
+7. Test with various n8n versions
+
+### Adyntel API Integration Considerations
+- API requires three-part authentication (key, email, domain)
+- POST method for Facebook endpoint suggests complex request body in response
+- Base URL suggests potential for multiple service endpoints
+- Company domain as credential suggests single-tenant usage pattern (may need revision)
+
+### Gap Analysis
+1. **Missing:** Response data schema documentation
+2. **Missing:** Error response handling
+3. **Missing:** Pagination for large result sets
+4. **Missing:** Input validation for company domain format
+5. **Missing:** Rate limiting handling
+6. **Incomplete:** adyntelPics node functionality
+7. **Incomplete:** User documentation
+8. **Incomplete:** Testing infrastructure
+
+## Next Immediate Actions
+1. Complete basic error handling for Adyntel node
+2. Test actual API responses and document schema
+3. Move company_domain from credential to node parameter for flexibility
+4. Create comprehensive README with setup and usage instructions
+5. Implement basic unit tests
+6. Test installation process in clean n8n environment
+7. Decide on adyntelPics node priority and implementation timeline
+</PRD>
+
