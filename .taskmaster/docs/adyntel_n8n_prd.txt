@@ -11,12 +11,8 @@ The Adyntel n8n Custom Node Package is a community integration that enables n8n 
 
 **How it works:** The node accepts company domain input, authenticates using stored credentials (API key, email, company domain), and makes POST requests to the `/facebook` endpoint at `api.adyntel.com` to retrieve Facebook ads data.
 
-## Adyntel Pics API Node (part of the template that was used as a starting point, needs to be removed)
-**What it does:** A secondary node designed to handle image/creative retrieval from Adyntel's picture API.
-
-**Why it's important:** Complements the main Adyntel node by enabling users to fetch ad creatives, images, and visual assets associated with Facebook ads for comprehensive competitive analysis.
-
-**How it works:** Separate node with its own credentials configuration, designed to work independently or in conjunction with the main Adyntel node in workflows.
+## Adyntel Pics API Node ✅ REMOVED
+**Status:** This duplicate node and its associated credentials file have been removed from the codebase as they were part of the original template and not needed for the current implementation. The main Adyntel node handles all required functionality.
 
 ## Credential Management
 **What it does:** Secure storage and management of Adyntel API credentials including API key, email, and company domain.
@@ -82,9 +78,11 @@ The Adyntel n8n Custom Node Package is a community integration that enables n8n 
 
 ### Core Components
 1. **Adyntel.node.ts** - Main node implementation for Facebook ads retrieval
-2. **adyntelPics.node.ts** - Secondary node for image/creative retrieval (in development)
-3. **AdyntelApi.credentials.ts** - Credential definition for main Adyntel API
-4. **adyntelPicsApi.credentials.ts** - Credential definition for pics API
+2. **AdyntelApi.credentials.ts** - Credential definition for Adyntel API
+
+**Removed Components (Cleanup Complete):**
+- ~~adyntelPics.node.ts~~ - Removed duplicate/template node
+- ~~adyntelPicsApi.credentials.ts~~ - Removed unused credentials file
 
 ### Build Pipeline
 - TypeScript compiler for `.ts` to `.js` conversion
@@ -170,7 +168,7 @@ Body: {
 - [ ] Testing infrastructure
 
 ## Phase 2: Enhanced Functionality
-- [ ] Complete adyntelPics node implementation
+- [x] ~~Complete adyntelPics node implementation~~ (Removed - not needed)
 - [ ] Add dynamic parameter inputs (company_domain as node parameter instead of credential)
 - [ ] Multiple operations support:
   - Get ads by date range
@@ -187,7 +185,7 @@ Body: {
 - [ ] Bulk operations (multiple domains in single request)
 - [ ] Data caching to reduce API calls
 - [ ] Advanced filtering and search capabilities
-- [ ] Ad creative download integration with adyntelPics node
+- [ ] Ad creative download and media handling capabilities
 - [ ] Metadata enrichment (ad spend estimates, performance metrics)
 - [ ] Export formats (CSV, JSON, structured data)
 
@@ -223,7 +221,7 @@ Body: {
 ## Incremental Enhancement Layer
 7. **Error Handling** - Make the basic operation robust before adding more features
 8. **Dynamic Parameters** - Move company_domain from credentials to node parameters for flexibility
-9. **AdyntelPics Node** - Secondary node for complementary functionality
+9. ~~**AdyntelPics Node**~~ - Removed as part of cleanup (was duplicate/template code)
 
 ## Advanced Capabilities Layer
 10. **Multiple Operations** - Expand Adyntel node with date filters, search, pagination
@@ -263,8 +261,8 @@ Body: {
 **Risk:** Over-engineering the credential system before understanding actual usage patterns
 - **Mitigation:** Start with simple credential model (API key + email + domain). Refactor to more sophisticated auth only if needed.
 
-**Risk:** Building adyntelPics node before main Adyntel node is production-ready
-- **Mitigation:** Complete, test, and document Adyntel node first. Use lessons learned for adyntelPics implementation.
+**Risk:** ~~Building adyntelPics node before main Adyntel node is production-ready~~ ✅ RESOLVED
+- **Resolution:** adyntelPics node and credentials removed from codebase. Focus remains on core Adyntel node functionality.
 
 ## Resource Constraints
 
@@ -292,11 +290,17 @@ Body: {
 
 ## Current Implementation Status
 - **Adyntel Node:** Basic structure complete, single operation implemented
-- **AdyntelPics Node:** File structure exists, implementation incomplete
+- **AdyntelPics Node:** ✅ REMOVED - Cleanup completed (was duplicate/template code)
 - **Build System:** Functional with TypeScript + Gulp
 - **Package Configuration:** Basic setup complete, needs refinement for publication
 - **Documentation:** Starter README present, needs replacement with actual documentation
 - **Testing:** No test infrastructure currently
+
+## Recent Changes (2025-10-13)
+- ✅ Removed adyntelPicsApi.credentials.ts file
+- ✅ Removed adyntelPics node directory and all associated files
+- ✅ Cleaned up codebase from duplicate/template artifacts
+- ✅ Project now has single, focused Adyntel node implementation
 
 ## Development Workflow & Version Control
 
@@ -424,18 +428,24 @@ git branch -d feature/add-error-handling
 ### File Structure
 ```
 /credentials
-  - AdyntelApi.credentials.ts (Main API credentials)
-  - adyntelPicsApi.credentials.ts (Pics API credentials)
+  - AdyntelApi.credentials.ts (API credentials)
 /nodes
   /Adyntel
     - Adyntel.node.ts (Main node implementation)
     - Adyntel.node.json (Node metadata)
     - adyntel.svg (Node icon)
-  /adyntelPics
-    - adyntelPics.node.ts (Pics node - incomplete)
+/dist (Build output)
+```
+
+**Removed Files (Cleanup Complete):**
+```
+/credentials
+  - adyntelPicsApi.credentials.ts ✅ REMOVED
+/nodes
+  /adyntelPics ✅ REMOVED
+    - adyntelPics.node.ts
     - adyntelpics.node.json
     - adyntelpics.svg
-/dist (Build output)
 ```
 
 ### Dependencies Analysis
@@ -466,7 +476,7 @@ git branch -d feature/add-error-handling
 3. **Missing:** Pagination for large result sets
 4. **Missing:** Input validation for company domain format
 5. **Missing:** Rate limiting handling
-6. **Incomplete:** adyntelPics node functionality
+6. ~~**Incomplete:** adyntelPics node functionality~~ ✅ RESOLVED (removed from codebase)
 7. **Incomplete:** User documentation
 8. **Incomplete:** Testing infrastructure
 
@@ -477,6 +487,6 @@ git branch -d feature/add-error-handling
 4. Create comprehensive README with setup and usage instructions
 5. Implement basic unit tests
 6. Test installation process in clean n8n environment
-7. Decide on adyntelPics node priority and implementation timeline
+7. ~~Decide on adyntelPics node priority and implementation timeline~~ ✅ RESOLVED (removed from scope)
 </PRD>
 
