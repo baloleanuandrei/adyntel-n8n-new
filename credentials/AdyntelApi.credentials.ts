@@ -24,20 +24,13 @@ export class AdyntelApi implements ICredentialType {
 			type: 'string',
 			default: '',
 		},
-		{
-			displayName: 'Company Domain',
-			name: 'companyDomain',
-			type: 'string',
-			default: '',
-		},
 	];
 	authenticate: IAuthenticateGeneric = {
 		type: 'generic',
 		properties: {
 			body: {
 				'api_key': '={{$credentials.apiKey}}',
-				'email': '={{$credentials.email}}',
-				'company_domain': '={{$credentials.companyDomain}}'
+				'email': '={{$credentials.email}}'
 			}
 		},
 	};
