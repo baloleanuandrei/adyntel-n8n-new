@@ -1,19 +1,26 @@
 {
   "name": "n8n-nodes-adyntel",
   "version": "0.1.0",
-  "description": "n8n node to call Adyntel's Facebook API services.",
+  "description": "n8n community node to integrate with Adyntel's Facebook Ads API. Get comprehensive Facebook advertising data including ads, creatives, targeting, and performance metrics.",
   "keywords": [
-    "n8n-community-node-package"
+    "n8n-community-node-package",
+    "adyntel",
+    "facebook",
+    "facebook ads",
+    "advertising",
+    "ad intelligence",
+    "marketing",
+    "social media"
   ],
   "license": "MIT",
-  "homepage": "https://n8n.io",
+  "homepage": "https://github.com/adyntel/n8n-nodes-adyntel#readme",
   "author": {
-    "name": "Test",
-    "email": "test@example.com"
+    "name": "Adyntel",
+    "email": "support@adyntel.com"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/example/n8n-nodes-adyntel.git"
+    "url": "git+https://github.com/adyntel/n8n-nodes-adyntel.git"
   },
   "engines": {
     "node": ">=20.15"
@@ -25,6 +32,10 @@
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes credentials package.json",
     "lintfix": "eslint nodes credentials package.json --fix",
+    "test": "jest",
+    "test:unit": "jest --testPathPattern=__tests__",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "prepublishOnly": "npm run build && npm run lint -c .eslintrc.prepublish.js nodes credentials package.json"
   },
   "files": [
@@ -39,12 +50,19 @@
       "dist/nodes/Adyntel/Adyntel.node.js"
     ]
   },
+  "bugs": {
+    "url": "https://github.com/adyntel/n8n-nodes-adyntel/issues"
+  },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.7.2",
     "@typescript-eslint/parser": "~8.32.0",
     "eslint": "^8.57.0",
     "eslint-plugin-n8n-nodes-base": "^1.16.3",
     "gulp": "^5.0.0",
+    "jest": "^30.2.0",
     "prettier": "^3.5.3",
+    "ts-jest": "^29.4.5",
     "typescript": "^5.8.2"
   },
   "peerDependencies": {

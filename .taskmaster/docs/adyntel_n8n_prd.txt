@@ -5,21 +5,25 @@ The Adyntel n8n Custom Node Package is a community integration that enables n8n 
 # Core Features
 
 ## Adyntel Facebook API Node
-**What it does:** Provides a declarative-style n8n node that fetches Facebook ads data for specified company domains through the Adyntel API.
+**What it does:** Provides a declarative-style n8n node that fetches Facebook ads data for specified company domains or Facebook page URLs through the Adyntel API.
 
 **Why it's important:** This is the primary integration point that allows users to retrieve competitive Facebook advertising data as part of automated workflows, eliminating manual API calls and reducing technical barriers for non-developers.
 
-**How it works:** The node accepts company domain input, authenticates using stored credentials (API key, email, company domain), and makes POST requests to the `/facebook` endpoint at `api.adyntel.com` to retrieve Facebook ads data.
+**How it works:** The node accepts either a company domain or Facebook page URL as input, along with optional filtering parameters (media type, country, active status, etc.), authenticates using stored credentials (API key, email), and makes POST requests to the `/facebook` endpoint at `api.adyntel.com` to retrieve Facebook ads data. Supports pagination via continuation tokens and webhook delivery for asynchronous processing.
 
 ## Adyntel Pics API Node ✅ REMOVED
 **Status:** This duplicate node and its associated credentials file have been removed from the codebase as they were part of the original template and not needed for the current implementation. The main Adyntel node handles all required functionality.
 
 ## Credential Management
-**What it does:** Secure storage and management of Adyntel API credentials including API key, email, and company domain.
+**What it does:** Secure, one-time storage of Adyntel API credentials (API key and email) in n8n's credential system.
 
-**Why it's important:** Ensures secure credential storage following n8n best practices, allowing reuse across multiple nodes and workflows without exposing sensitive information.
+**Why it's important:** Ensures secure credential storage following n8n best practices, allowing reuse across multiple nodes and workflows without exposing sensitive information. Users configure credentials once and select them from a dropdown in each node.
 
-**How it works:** Implements n8n's ICredentialType interface with encrypted password storage for API keys and validates credentials through generic authentication.
+**How it works:**
+- Implements n8n's ICredentialType interface with encrypted password storage for API keys
+- Credentials are stored separately from workflows (secure, reusable)
+- Node parameters (company_domain, facebook_url, filters) are configured per-node and support dynamic values from previous nodes
+- This separation allows one credential set to query multiple targets dynamically
 
 # User Experience
 
@@ -44,25 +48,74 @@ The Adyntel n8n Custom Node Package is a community integration that enables n8n 
 
 ### Initial Setup Flow
 1. Install n8n-nodes-adyntel package via npm
-2. Link package to local n8n instance
-3. Configure Adyntel API credentials in n8n
-4. Add Adyntel node to workflow canvas
-5. Select "Get Facebook Ads" operation
-6. Execute workflow to retrieve data
+2. Restart or reload n8n to detect the new node
+3. **One-time Credential Setup:**
+   - Navigate to Credentials in n8n
+   - Create new "Adyntel API" credential
+   - Enter API Key and Email (these are stored securely and reused)
+4. Add Adyntel node to any workflow canvas
+5. Select the saved credential from dropdown
+6. Node is ready to use
+
+### Typical Workflow Scenario
+1. **Trigger/Input:** Webhook receives data OR previous node provides company information
+2. **Adyntel Node:**
+   - Uses saved credentials (API Key + Email) automatically
+   - Accepts `company_domain` dynamically from previous node output (e.g., `{{$json["domain"]}}`)
+   - OR accepts `facebook_url` from previous node
+   - Optionally add filters: `media_type`, `country_code`, `active_status`
+   - Makes API call to Adyntel
+3. **Raw Response:** Node outputs complete API response as JSON
+4. **Next Nodes:** Downstream nodes access response data using expressions like `{{$json["field_name"]}}`
+   - Example: Save to database, send to Google Sheets, trigger notifications, etc.
 
 ### Ongoing Usage Flow
 1. Open existing workflow with Adyntel node
-2. Optionally modify company domain or other parameters
-3. Connect to downstream nodes (databases, spreadsheets, notifications)
-4. Schedule or trigger workflow execution
-5. Access Facebook ads data in subsequent workflow steps
+2. Credentials are already configured (no need to re-enter)
+3. Modify node parameters as needed:
+   - Change `company_domain` or `facebook_url` (static value or dynamic from previous node)
+   - Adjust filtering parameters (media type, country, active status)
+   - Add pagination using `continuation_token` from previous response
+4. Connect to new downstream nodes if needed
+5. Execute workflow - raw API response flows to next nodes
 
 ## UI/UX Considerations
+- **Separated Credentials:** API Key and Email stored once in n8n Credentials (secure, reusable across workflows)
+- **Dynamic Node Parameters:** company_domain and facebook_url accept static values OR dynamic expressions from previous nodes
 - **Simple Operation Selection:** Currently single operation ("Get Facebook Ads") with room for expansion
 - **Credential Reusability:** Store credentials once, use across multiple nodes and workflows
 - **Clear Visual Identity:** Custom Adyntel SVG icon for easy node identification on canvas
 - **Standard n8n Patterns:** Follows n8n's declarative routing and parameter conventions for familiarity
+- **Raw API Response:** Node outputs unmodified JSON response for maximum flexibility in downstream nodes
+- **Expression Support:** All parameters support n8n expressions (e.g., `{{$json["domain"]}}`) for dynamic workflows
 - **Error Handling:** Needs clear error messages for API failures, authentication issues, and invalid domains
+
+## Example Workflow
+
+### Scenario: Monitor Competitor Ads from Webhook
+```
+[Webhook Trigger]
+    ↓ (outputs: {"domain": "example.com", "country": "US"})
+[Adyntel Node]
+    - Credentials: Select "My Adyntel API" (API Key + Email stored)
+    - company_domain: {{$json["domain"]}}
+    - country_code: {{$json["country"]}}
+    - media_type: video
+    ↓ (outputs raw API response with ads data)
+[Google Sheets Node]
+    - Sheet: "Competitor Ads"
+    - Data: {{$json["ads"]}} (access fields from Adyntel response)
+    ↓
+[Slack Node]
+    - Message: "Found {{$json["total_ads"]}} new ads for {{$json["company"]}}"
+```
+
+**Key Points:**
+- Credentials (API Key, Email) are configured once and selected from dropdown
+- Node parameters (company_domain, country_code) can be static OR pull from previous node using expressions
+- Raw API response flows to next nodes
+- Downstream nodes access response fields using `{{$json["field_name"]}}`
+
 </context>
 
 <PRD>
@@ -96,18 +149,24 @@ The Adyntel n8n Custom Node Package is a community integration that enables n8n 
 ```typescript
 {
   apiKey: string (password-protected),
-  email: string,
-  companyDomain: string
+  email: string
 }
 ```
+Note: company_domain and facebook_url are now node parameters rather than credentials, allowing for more flexible usage across different targets.
 
 ### API Request Model
 ```typescript
 POST /facebook
 Body: {
-  api_key: string,
-  email: string,
-  company_domain: string
+  api_key: string (required),
+  email: string (required),
+  facebook_url?: string (either this or company_domain required),
+  company_domain?: string (either this or facebook_url required),
+  webhook_url?: string (optional),
+  continuation_token?: string (optional),
+  media_type?: "image" | "meme" | "image_and_meme" | "video" (optional),
+  country_code?: string (optional),
+  active_status?: "inactive" | "all" (optional, default: active only)
 }
 ```
 
@@ -115,18 +174,27 @@ Body: {
 - **Operation:** "getFacebookAds" (default and only current operation)
 - **Node Type:** Transform node (processing/enriching data)
 - **Connection Type:** Main input/output for workflow connectivity
+- **Credential Binding:** References saved "Adyntel API" credential (API Key + Email)
+- **Node Parameters:**
+  - company_domain or facebook_url (accepts static values or dynamic expressions from previous nodes)
+  - Optional: media_type, country_code, active_status, webhook_url, continuation_token
+- **Input:** Can accept data from previous nodes (webhooks, triggers, other nodes)
+- **Output:** Returns raw JSON response from Adyntel API for use in subsequent nodes
+- **Expression Support:** All parameters support n8n expressions (e.g., `{{$json["company_domain"]}}`)
 
 ## APIs and Integrations
 
 ### Adyntel API Integration
 - **Base URL:** `https://api.adyntel.com`
 - **Endpoint:** POST `/facebook`
-- **Authentication:** Body-based credentials (api_key, email, company_domain)
+- **Authentication:** Body-based credentials (api_key, email)
 - **Request Format:** JSON
 - **Response Format:** JSON
 - **Headers:**
   - Accept: application/json
   - Content-Type: application/json
+- **Required Parameters:** api_key, email, and either facebook_url OR company_domain
+- **Optional Parameters:** webhook_url, continuation_token, media_type, country_code, active_status
 
 ### n8n Framework Integration
 - **n8n API Version:** 1
@@ -158,38 +226,35 @@ Body: {
 
 ## Phase 1: MVP - Core Facebook Ads Functionality ✓ (Mostly Complete)
 - [x] Basic n8n node structure and TypeScript setup
-- [x] AdyntelApi credential definition with API key, email, domain
+- [x] AdyntelApi credential definition with API key and email
 - [x] Adyntel node with "Get Facebook Ads" operation
 - [x] Declarative routing to POST /facebook endpoint
 - [x] Build pipeline (TypeScript + Gulp)
 - [x] Basic package.json configuration
+- [ ] Update credentials to remove company_domain (move to node parameter)
 - [ ] Complete documentation (README update)
 - [ ] Error handling and validation
 - [ ] Testing infrastructure
 
 ## Phase 2: Enhanced Functionality
 - [x] ~~Complete adyntelPics node implementation~~ (Removed - not needed)
-- [ ] Add dynamic parameter inputs (company_domain as node parameter instead of credential)
-- [ ] Multiple operations support:
-  - Get ads by date range
-  - Get ads by campaign type
-  - Search ads by keywords
-  - Filter by ad status (active/inactive)
-- [ ] Response data transformation and formatting
-- [ ] Pagination handling for large datasets
+- [ ] Add dynamic parameter inputs (company_domain and facebook_url as node parameters with expression support)
+- [ ] Support for all API parameters with n8n expression capability:
+  - **facebook_url** (string): Facebook page URL (must start with https://) - Either this or company_domain required
+  - **company_domain** (string): Company website - Either this or facebook_url required
+  - **webhook_url** (string): Webhook URL where data will be returned (optional)
+  - **continuation_token** (string): Token to grab the next set of ads for pagination (optional)
+  - **media_type** (string): Filter by media type - Possible values: image, meme, image_and_meme, video (optional)
+  - **country_code** (string): Filter by specific country (optional)
+  - **active_status** (string): Filter by ad status - Possible values: inactive, all (default: active only) (optional)
+- [ ] Raw API response output (pass-through without transformation for downstream node flexibility)
+- [ ] Pagination handling using continuation_token
 - [ ] Rate limiting and retry logic
 - [ ] Comprehensive error messages
+- [ ] Input validation for required parameters and URL formats
+- [ ] Support for n8n expressions in all parameter fields (enable dynamic values from previous nodes)
 
-## Phase 3: Advanced Features
-- [ ] Webhook support for real-time ad monitoring
-- [ ] Bulk operations (multiple domains in single request)
-- [ ] Data caching to reduce API calls
-- [ ] Advanced filtering and search capabilities
-- [ ] Ad creative download and media handling capabilities
-- [ ] Metadata enrichment (ad spend estimates, performance metrics)
-- [ ] Export formats (CSV, JSON, structured data)
-
-## Phase 4: Production Ready
+## Phase 3: Production Ready
 - [ ] Comprehensive unit and integration tests
 - [ ] E2E testing with actual n8n workflows
 - [ ] Complete API documentation
@@ -198,13 +263,6 @@ Body: {
 - [ ] Security audit
 - [ ] npm publication
 - [ ] n8n community node submission
-
-## Phase 5: Ecosystem Integration
-- [ ] Pre-built workflow templates
-- [ ] Integration examples with popular services (Google Sheets, Airtable, databases)
-- [ ] Advanced workflow recipes (competitor monitoring, reporting dashboards)
-- [ ] Community support and issue resolution
-- [ ] Feature requests and roadmap updates
 
 # Logical Dependency Chain
 
@@ -220,22 +278,19 @@ Body: {
 
 ## Incremental Enhancement Layer
 7. **Error Handling** - Make the basic operation robust before adding more features
-8. **Dynamic Parameters** - Move company_domain from credentials to node parameters for flexibility
+8. **Dynamic Parameters** - Support for facebook_url and company_domain as node parameters
 9. ~~**AdyntelPics Node**~~ - Removed as part of cleanup (was duplicate/template code)
 
-## Advanced Capabilities Layer
-10. **Multiple Operations** - Expand Adyntel node with date filters, search, pagination
-11. **Data Transformation** - Format output for easy consumption in downstream nodes
-12. **Performance Optimization** - Caching, rate limiting, retry logic
+## Enhanced Parameter Support Layer
+10. **All API Parameters** - Support for media_type, country_code, active_status, webhook_url, continuation_token with expression support
+11. **Raw Response Output** - Pass-through API response without transformation for maximum downstream flexibility
+12. **Expression Support** - Enable n8n expressions in all parameters for dynamic workflows (e.g., pulling company_domain from previous node)
+13. **Performance Optimization** - Rate limiting, retry logic, pagination handling
 
 ## Production Readiness Layer
-13. **Testing Suite** - Comprehensive tests before public release
-14. **Complete Documentation** - User guides, API docs, workflow examples
-15. **npm Publication** - Make available to community
-
-## Post-Launch Layer
-16. **Workflow Templates** - Pre-built solutions for common use cases
-17. **Community Engagement** - Support, features, iterations based on feedback
+14. **Testing Suite** - Comprehensive tests before public release
+15. **Complete Documentation** - User guides, API docs, workflow examples
+16. **npm Publication** - Make available to community
 
 # Risks and Mitigations
 
@@ -261,8 +316,7 @@ Body: {
 **Risk:** Over-engineering the credential system before understanding actual usage patterns
 - **Mitigation:** Start with simple credential model (API key + email + domain). Refactor to more sophisticated auth only if needed.
 
-**Risk:** ~~Building adyntelPics node before main Adyntel node is production-ready~~ ✅ RESOLVED
-- **Resolution:** adyntelPics node and credentials removed from codebase. Focus remains on core Adyntel node functionality.
+
 
 ## Resource Constraints
 
@@ -290,7 +344,6 @@ Body: {
 
 ## Current Implementation Status
 - **Adyntel Node:** Basic structure complete, single operation implemented
-- **AdyntelPics Node:** ✅ REMOVED - Cleanup completed (was duplicate/template code)
 - **Build System:** Functional with TypeScript + Gulp
 - **Package Configuration:** Basic setup complete, needs refinement for publication
 - **Documentation:** Starter README present, needs replacement with actual documentation
@@ -465,28 +518,37 @@ git branch -d feature/add-error-handling
 7. Test with various n8n versions
 
 ### Adyntel API Integration Considerations
-- API requires three-part authentication (key, email, domain)
-- POST method for Facebook endpoint suggests complex request body in response
+- API requires authentication via api_key and email in request body
+- Either facebook_url or company_domain must be provided (mutually exclusive alternatives)
+- POST method for Facebook endpoint supports rich filtering and pagination options
 - Base URL suggests potential for multiple service endpoints
-- Company domain as credential suggests single-tenant usage pattern (may need revision)
+- Support for webhook delivery enables asynchronous processing of large datasets
+- Pagination via continuation_token allows handling of large result sets
+- Multiple filter parameters (media_type, country_code, active_status) provide flexible querying
 
 ### Gap Analysis
 1. **Missing:** Response data schema documentation
 2. **Missing:** Error response handling
-3. **Missing:** Pagination for large result sets
-4. **Missing:** Input validation for company domain format
-5. **Missing:** Rate limiting handling
-6. ~~**Incomplete:** adyntelPics node functionality~~ ✅ RESOLVED (removed from codebase)
-7. **Incomplete:** User documentation
-8. **Incomplete:** Testing infrastructure
+3. **Missing:** Pagination support using continuation_token
+4. **Missing:** Input validation for URL formats (facebook_url) and domain formats
+5. **Missing:** Support for all optional parameters (webhook_url, media_type, country_code, active_status)
+6. **Missing:** Rate limiting handling
+7. ~~**Incomplete:** adyntelPics node functionality~~ ✅ RESOLVED (removed from codebase)
+8. **Incomplete:** User documentation
+9. **Incomplete:** Testing infrastructure
 
 ## Next Immediate Actions
-1. Complete basic error handling for Adyntel node
-2. Test actual API responses and document schema
-3. Move company_domain from credential to node parameter for flexibility
-4. Create comprehensive README with setup and usage instructions
-5. Implement basic unit tests
-6. Test installation process in clean n8n environment
-7. ~~Decide on adyntelPics node priority and implementation timeline~~ ✅ RESOLVED (removed from scope)
+1. Update credentials file to remove company_domain (keep only API Key + Email)
+2. Implement support for facebook_url and company_domain as node parameters with n8n expression support
+3. Add support for all optional parameters (webhook_url, continuation_token, media_type, country_code, active_status)
+4. Ensure raw API response is passed through without transformation
+5. Complete basic error handling for Adyntel node
+6. Test actual API responses and document schema
+7. Implement input validation for URL formats (facebook_url must start with https://)
+8. Test dynamic parameter expressions with sample workflow (webhook → Adyntel → next node)
+9. Create comprehensive README with setup and usage instructions
+10. Implement basic unit tests
+11. Test installation process in clean n8n environment
+12. ~~Decide on adyntelPics node priority and implementation timeline~~ ✅ RESOLVED (removed from scope)
 </PRD>
 

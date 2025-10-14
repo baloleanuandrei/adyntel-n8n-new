@@ -2,46 +2,452 @@
   "master": {
     "tasks": [
       {
-        "id": "1",
-        "title": "Remove adyntelPicsApi credentials file",
-        "description": "Delete the unused adyntelPicsApi.credentials.ts file and clean up any remaining references to it in the codebase.",
-        "details": "The adyntelPicsApi.credentials.ts file appears to be an obsolete credential file that duplicates the functionality of AdyntelApi.credentials.ts. Investigation shows:\n\n1. The file at /Users/andreibaloleanu/adyntel-n8n-new/credentials/adyntelPicsApi.credentials.ts contains the same AdyntelApi class as the main credentials file\n2. The adyntelPics node in nodes/adyntelPics/adyntelPics.node.ts references 'AdyntelApi' credentials, not 'adyntelPicsApi'\n3. The package.json only registers the main AdyntelApi credentials file in the n8n configuration\n4. No references to 'picsapi', 'adyntelPicsApi', or similar variants were found in the codebase\n\nImplementation steps:\n1. Verify the file is truly unused by conducting a final search for any references\n2. Delete the adyntelPicsApi.credentials.ts file using the file system\n3. Ensure no import statements or configuration references point to this file\n4. Confirm the adyntelPics node continues to work with the main AdyntelApi credentials\n\nThis cleanup will reduce code duplication and eliminate confusion about which credentials file to use for the Adyntel API integration.",
-        "testStrategy": "1. Search the entire codebase for any references to 'adyntelPicsApi' or similar to confirm no dependencies exist\n2. Delete the adyntelPicsApi.credentials.ts file\n3. Run 'npm run build' to ensure the build process completes successfully without errors\n4. Run 'npm run lint' to verify no linting errors are introduced\n5. Verify that the adyntelPics node still references the correct 'AdyntelApi' credentials in its configuration\n6. Confirm the package.json n8n.credentials array only contains the intended AdyntelApi credentials file path\n7. Test that no broken imports or missing file errors occur during the build process",
-        "status": "done",
+        "id": 1,
+        "title": "Update Credential System to Remove Company Domain Parameter",
+        "description": "Modify AdyntelApi credentials to only store API Key and Email, removing company_domain which should be a node parameter instead",
+        "details": "Update credentials/AdyntelApi.credentials.ts to remove the 'Company Domain' property from the credentials interface. This change aligns with the PRD requirement that company_domain should be a dynamic node parameter rather than a static credential, enabling more flexible usage across different targets. Remove the companyDomain property from both the properties array and the authenticate body configuration.",
+        "testStrategy": "Verify credentials file compiles without errors. Test that the credential creation UI only shows API Key and Email fields. Ensure existing workflows using the old credential structure are handled gracefully.",
+        "priority": "high",
         "dependencies": [],
-        "priority": "medium",
+        "status": "done",
         "subtasks": [],
-        "complexity": 2,
-        "recommendedSubtasks": 0,
-        "expansionPrompt": "This task does not need expansion as it's a simple file deletion operation.",
-        "updatedAt": "2025-10-13T21:15:49.173Z"
+        "complexity": 3,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Break down the credential system update into: 1) Remove companyDomain property from credentials interface, 2) Update authenticate body configuration, 3) Test credential UI and backward compatibility with existing workflows",
+        "updatedAt": "2025-10-13T22:01:06.964Z"
       },
       {
-        "id": "2",
-        "title": "Remove adyntelPics node directory and all associated files",
-        "description": "Delete the entire adyntelPics node directory and remove all references to it from the project configuration and build system.",
-        "details": "The adyntelPics node is a duplicate implementation that is no longer needed. Analysis shows:\n\n1. The adyntelPics node directory at nodes/adyntelPics/ contains:\n   - adyntelPics.node.ts: Contains the same Adyntel class as the main node with identical functionality\n   - adyntelpics.node.json: Node metadata file\n   - adyntelpics.svg: Icon file\n\n2. The main Adyntel node at nodes/Adyntel/ is the correct implementation that should remain\n\n3. The package.json only registers the main Adyntel node in the n8n configuration, confirming adyntelPics is not used\n\n4. Both nodes implement identical functionality - making POST requests to api.adyntel.com/facebook\n\nImplementation steps:\n1. Delete the entire nodes/adyntelPics/ directory and all its contents\n2. Verify no import statements or references to adyntelPics exist in other files\n3. Confirm the build system doesn't reference the deleted files\n4. Ensure the dist/ folder doesn't contain any compiled adyntelPics files\n5. Update any documentation that might reference the removed node\n\nThis cleanup will eliminate code duplication and maintain only the properly configured Adyntel node.",
-        "testStrategy": "1. Search the entire codebase for any remaining references to 'adyntelPics' or 'adyntelpics' (case-insensitive)\n2. Delete the nodes/adyntelPics/ directory and verify all files are removed\n3. Run 'npm run build' to ensure the build process completes without errors\n4. Run 'npm run lint' to verify no linting errors are introduced\n5. Check that no compiled files for adyntelPics exist in the dist/ folder\n6. Verify the main Adyntel node at nodes/Adyntel/ remains functional\n7. Confirm the package.json n8n.nodes configuration still only points to the main Adyntel node\n8. Test that the n8n package builds correctly and contains only the intended node",
-        "status": "done",
+        "id": 2,
+        "title": "Add Dynamic Node Parameters for Facebook URL and Company Domain",
+        "description": "Implement support for facebook_url and company_domain as dynamic node parameters with n8n expression support",
+        "details": "Modify nodes/Adyntel/Adyntel.node.ts to add new node properties for facebook_url and company_domain. These should be mutually exclusive options (either/or required) and support n8n expressions like {{$json[\"domain\"]}} for dynamic values from previous nodes. Add proper validation to ensure facebook_url starts with https:// and at least one of the two parameters is provided. Update the routing configuration to use these dynamic parameters instead of credential values.",
+        "testStrategy": "Test with static values, test with expressions from previous nodes, verify validation for facebook_url format, ensure error handling when neither parameter is provided, test mutual exclusivity logic.",
+        "priority": "high",
         "dependencies": [
           "1"
         ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add node properties for facebook_url and company_domain with validation",
+            "description": "Add new node properties to the Adyntel.node.ts file for facebook_url and company_domain parameters with proper input validation",
+            "dependencies": [],
+            "details": "Modify nodes/Adyntel/Adyntel.node.ts to add two new properties in the properties array: facebook_url (string type with displayName 'Facebook URL') and company_domain (string type with displayName 'Company Domain'). Add validation for facebook_url to ensure it starts with https:// using regex pattern. Configure both properties to support n8n expressions and add appropriate descriptions for user guidance.",
+            "status": "pending",
+            "testStrategy": "Test property rendering in n8n UI, verify validation messages appear for invalid facebook_url format, test that both properties accept string input",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement mutual exclusivity logic between parameters",
+            "description": "Create validation logic to ensure either facebook_url or company_domain is provided, but not both simultaneously",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement conditional property display and validation logic in the node properties configuration. Use displayOptions to show/hide properties based on each other's values. Add validation in the execute method to ensure exactly one of the two parameters is provided and not empty. Create clear error messages when validation fails.",
+            "status": "pending",
+            "testStrategy": "Test that only one parameter can be filled at a time, verify error messages when both are provided or neither is provided, test UI behavior when switching between options",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Add n8n expression support for dynamic values",
+            "description": "Enable n8n expression evaluation for both facebook_url and company_domain parameters to support dynamic values from previous nodes",
+            "dependencies": [
+              1
+            ],
+            "details": "Configure both properties to support n8n expressions by setting noDataExpression: false and expressionSupported: true. In the execute method, use this.getNodeParameter() to retrieve and evaluate expressions like {{$json['domain']}}. Handle expression evaluation errors gracefully and provide meaningful error messages when expressions fail to resolve.",
+            "status": "pending",
+            "testStrategy": "Test with static values, test with expressions from previous nodes like {{$json['domain']}}, verify expression evaluation errors are handled properly, test complex expressions",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Update routing configuration to use dynamic parameters",
+            "description": "Modify the node's routing logic to use the new dynamic parameters instead of credential-based values",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Update the execute method in Adyntel.node.ts to retrieve facebook_url or company_domain from node parameters instead of credentials. Modify the API request construction to use these dynamic values for routing requests to the correct endpoint. Ensure proper parameter extraction and URL construction for both facebook_url and company_domain scenarios.",
+            "status": "pending",
+            "testStrategy": "Test routing with static facebook_url values, test routing with company_domain values, verify API calls use correct parameters, test with expression-based dynamic values",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Add comprehensive validation and error handling",
+            "description": "Implement thorough validation and error handling for all parameter scenarios including edge cases and user input errors",
+            "dependencies": [
+              4
+            ],
+            "details": "Add comprehensive validation for facebook_url format (must be valid URL starting with https://), company_domain format (valid domain format), and mutual exclusivity enforcement. Implement proper error handling with descriptive error messages for validation failures, expression evaluation errors, and API routing issues. Add input sanitization and edge case handling for empty strings, whitespace, and invalid formats.",
+            "status": "pending",
+            "testStrategy": "Test all validation scenarios including invalid URLs, invalid domains, empty inputs, whitespace-only inputs, malformed expressions, and verify appropriate error messages are displayed",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Expand into: 1) Add node properties for facebook_url and company_domain with validation, 2) Implement mutual exclusivity logic, 3) Add n8n expression support, 4) Update routing configuration to use dynamic parameters, 5) Add comprehensive validation and error handling"
+      },
+      {
+        "id": 3,
+        "title": "Implement All Optional API Parameters",
+        "description": "Add support for all optional Adyntel API parameters: webhook_url, continuation_token, media_type, country_code, and active_status",
+        "details": "Extend the node properties in Adyntel.node.ts to include optional parameters: webhook_url (string), continuation_token (string for pagination), media_type (options: image, meme, image_and_meme, video), country_code (string), and active_status (options: inactive, all, with default being active only). All parameters should support n8n expressions and be properly typed. Update the routing body configuration to conditionally include these parameters when provided.",
+        "testStrategy": "Test each parameter individually and in combinations. Verify dropdown options for media_type and active_status. Test pagination using continuation_token. Validate webhook_url format. Ensure parameters work with both static values and expressions.",
         "priority": "medium",
+        "dependencies": [
+          "2"
+        ],
+        "status": "pending",
         "subtasks": [],
-        "complexity": 3,
+        "complexity": 5,
         "recommendedSubtasks": 4,
-        "expansionPrompt": "Break down this cleanup task into verification, deletion, testing, and validation steps to ensure no build system dependencies are broken when removing the duplicate node directory.",
-        "updatedAt": "2025-10-13T21:20:59.427Z"
+        "expansionPrompt": "Break down into: 1) Add webhook_url and continuation_token string parameters, 2) Implement media_type dropdown with validation, 3) Add country_code and active_status parameters, 4) Update routing body configuration to conditionally include parameters"
+      },
+      {
+        "id": 4,
+        "title": "Implement Comprehensive Error Handling and Validation",
+        "description": "Add robust error handling for API failures, authentication issues, and input validation with clear user-friendly error messages",
+        "details": "Implement error handling in the Adyntel.node.ts for various scenarios: API authentication failures (invalid API key/email), network errors, invalid domain/URL formats, API rate limiting, and server errors. Add input validation for facebook_url (must start with https://), company_domain format, and required parameter checking. Provide clear, actionable error messages that help users understand and fix issues. Include retry logic for transient failures.",
+        "testStrategy": "Test with invalid credentials, malformed URLs, network failures, rate limiting scenarios. Verify error messages are clear and helpful. Test retry logic with intermittent failures. Ensure graceful degradation and proper error propagation to n8n workflow.",
+        "priority": "high",
+        "dependencies": [
+          "3"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add input validation for URLs and domains",
+            "description": "Implement comprehensive input validation for facebook_url (must start with https://) and company_domain format validation with proper error messages",
+            "dependencies": [],
+            "details": "Create validation functions to check facebook_url format (must start with https://), validate company_domain format (proper domain structure), ensure at least one parameter is provided, and return clear validation error messages. Implement these validations in the node properties and before API calls.",
+            "status": "pending",
+            "testStrategy": "Test with various invalid URL formats, malformed domains, missing parameters, and valid inputs. Verify error messages are descriptive and actionable.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement API authentication error handling",
+            "description": "Add robust error handling for API authentication failures including invalid API key, invalid email, and credential-related errors",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement try-catch blocks around API authentication calls, detect specific authentication error responses from Adyntel API, create meaningful error messages for invalid API key/email combinations, and ensure proper error codes are returned to n8n workflow.",
+            "status": "pending",
+            "testStrategy": "Test with invalid API keys, wrong email addresses, expired credentials, and verify clear error messages guide users to fix authentication issues.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement network and rate limiting error handling",
+            "description": "Add comprehensive error handling for network failures, API rate limiting, server errors, and timeout scenarios",
+            "dependencies": [
+              2
+            ],
+            "details": "Implement error handling for network connectivity issues, HTTP timeout errors, rate limiting responses (429 status), server errors (5xx status codes), and connection failures. Include appropriate error classifications and response codes for n8n.",
+            "status": "pending",
+            "testStrategy": "Test with network disconnection, simulated timeouts, rate limiting scenarios, and server error responses. Verify proper error categorization and handling.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Create user-friendly error messages and error propagation",
+            "description": "Develop clear, actionable error messages for all error scenarios and implement proper error propagation to n8n workflows",
+            "dependencies": [
+              3
+            ],
+            "details": "Create a comprehensive error message system that provides clear, actionable guidance for users. Map technical API errors to user-friendly messages, include suggested fixes, and ensure proper error object structure for n8n workflow error handling and debugging.",
+            "status": "pending",
+            "testStrategy": "Test all error scenarios and verify messages are clear, helpful, and include actionable steps. Ensure error propagation works correctly in n8n workflows.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Add retry logic for transient failures",
+            "description": "Implement intelligent retry mechanisms for transient failures like network timeouts and temporary server errors",
+            "dependencies": [
+              4
+            ],
+            "details": "Implement exponential backoff retry logic for transient errors (network timeouts, 5xx server errors, rate limiting). Configure maximum retry attempts, backoff intervals, and distinguish between retryable and non-retryable errors. Ensure retry logic doesn't interfere with n8n execution timeouts.",
+            "status": "pending",
+            "testStrategy": "Test retry logic with simulated transient failures, verify exponential backoff timing, ensure maximum retry limits work, and test that non-retryable errors fail immediately.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 6,
+            "title": "Add comprehensive error testing scenarios",
+            "description": "Create comprehensive test suite covering all error handling scenarios and edge cases for production readiness",
+            "dependencies": [
+              5
+            ],
+            "details": "Develop test cases for all implemented error scenarios including authentication failures, network issues, invalid inputs, rate limiting, server errors, and retry logic. Create both unit tests and integration tests, mock API responses for consistent testing, and ensure test coverage of all error paths.",
+            "status": "pending",
+            "testStrategy": "Achieve comprehensive coverage of all error scenarios, verify test reliability and consistency, ensure tests catch regressions, and validate error handling works correctly in all cases.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 7,
+        "recommendedSubtasks": 6,
+        "expansionPrompt": "Expand into: 1) Add input validation for URLs and domains, 2) Implement API error handling (auth, network, rate limiting), 3) Create user-friendly error messages, 4) Add retry logic for transient failures, 5) Implement proper error propagation to n8n, 6) Add comprehensive error testing scenarios"
+      },
+      {
+        "id": 5,
+        "title": "Configure Raw API Response Pass-Through",
+        "description": "Ensure the node outputs the complete, unmodified JSON response from the Adyntel API for maximum flexibility in downstream nodes",
+        "details": "Verify that the current declarative routing configuration passes through the raw API response without transformation. Update the node description and documentation to clearly indicate that the full API response is available for downstream nodes. Test that all response fields are accessible using n8n expressions like {{$json[\"field_name\"]}} in subsequent nodes.",
+        "testStrategy": "Test with actual API responses to verify all fields are present and accessible. Create example workflows showing how to access response data in downstream nodes. Test with large responses to ensure no data truncation occurs.",
+        "priority": "medium",
+        "dependencies": [
+          "2"
+        ],
+        "status": "pending",
+        "subtasks": [],
+        "complexity": 2,
+        "recommendedSubtasks": 2,
+        "expansionPrompt": "Split into: 1) Verify current routing passes through raw API responses without transformation, 2) Update documentation and examples showing how to access response fields in downstream nodes"
+      },
+      {
+        "id": 6,
+        "title": "Add Pagination Support with Continuation Token",
+        "description": "Implement proper handling of pagination using the continuation_token parameter for large result sets",
+        "details": "Enhance the node to properly handle pagination by accepting continuation_token as input parameter and including it in subsequent requests. Update node properties to include a clear description of how pagination works. Consider adding a helper property or description that explains how to chain requests using the continuation_token from previous responses.",
+        "testStrategy": "Test pagination with large datasets that require multiple API calls. Verify continuation_token is properly passed between requests. Test edge cases like empty results and final page detection. Create example workflow demonstrating pagination loop.",
+        "priority": "low",
+        "dependencies": [
+          "3"
+        ],
+        "status": "pending",
+        "subtasks": [],
+        "complexity": 4,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Break down into: 1) Enhance node properties with continuation_token parameter and clear pagination documentation, 2) Add helper descriptions explaining pagination workflow, 3) Create example workflow demonstrating pagination loop pattern"
+      },
+      {
+        "id": 7,
+        "title": "Update Package Metadata and Documentation",
+        "description": "Replace starter template content in package.json and README.md with actual Adyntel-specific information",
+        "details": "Update package.json author information, repository URL, homepage, and description to reflect the actual Adyntel integration. Replace the generic starter README.md with comprehensive documentation including installation instructions, credential setup guide, parameter explanations, example workflows, and troubleshooting section. Update the documentationUrl in credentials file to point to actual documentation.",
+        "testStrategy": "Review all metadata for accuracy and completeness. Verify all links work correctly. Test installation instructions on clean environment. Ensure examples are accurate and functional.",
+        "priority": "medium",
+        "dependencies": [
+          "4"
+        ],
+        "status": "pending",
+        "subtasks": [],
+        "complexity": 4,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Organize into: 1) Update package.json with correct author, repository, and description information, 2) Replace README.md with comprehensive Adyntel-specific documentation, 3) Update credentials documentationUrl to point to actual docs, 4) Create examples and troubleshooting sections"
+      },
+      {
+        "id": 8,
+        "title": "Implement Comprehensive Testing Suite",
+        "description": "Create unit tests, integration tests, and end-to-end testing infrastructure for the Adyntel node",
+        "details": "Set up Jest or similar testing framework and create comprehensive tests for the Adyntel node. Include unit tests for parameter validation, error handling, and credential management. Add integration tests with mock API responses to test all scenarios. Create end-to-end tests that can run against the actual Adyntel API (with test credentials). Set up test scripts in package.json and ensure tests run in CI/CD pipeline.",
+        "testStrategy": "Achieve high code coverage with both positive and negative test cases. Mock external API calls for unit tests. Test all parameter combinations and error scenarios. Verify tests pass consistently and catch regressions.",
+        "priority": "medium",
+        "dependencies": [
+          "5"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up Jest testing framework and configuration",
+            "description": "Initialize Jest testing framework with proper configuration for n8n node testing including TypeScript support and test environment setup",
+            "dependencies": [],
+            "details": "Install Jest and related dependencies (@types/jest, ts-jest). Create jest.config.js with TypeScript configuration, test environment setup, and proper module resolution for n8n imports. Configure test file patterns and coverage settings. Set up test utilities for n8n node testing including mock helpers and test data fixtures.",
+            "status": "pending",
+            "testStrategy": "Verify Jest configuration by running basic test setup. Ensure TypeScript compilation works correctly and n8n modules can be imported without errors.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Create unit tests for parameter validation and error handling",
+            "description": "Implement comprehensive unit tests for input parameter validation, credential validation, and error handling scenarios",
+            "dependencies": [
+              1
+            ],
+            "details": "Create unit tests for facebook_url validation (https:// requirement), company_domain format validation, required parameter checking, and mutual exclusivity logic. Test error handling for invalid credentials, malformed inputs, and missing required fields. Mock all external dependencies and focus on isolated function testing.",
+            "status": "pending",
+            "testStrategy": "Test all validation rules with valid and invalid inputs. Verify error messages are clear and actionable. Achieve 100% coverage of validation logic and error handling paths.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement integration tests with mock API responses",
+            "description": "Create integration tests using mocked Adyntel API responses to test all API scenarios and parameter combinations",
+            "dependencies": [
+              1
+            ],
+            "details": "Set up API mocking using Jest mocks or nock library. Create mock responses for successful API calls, authentication failures, rate limiting, server errors, and edge cases. Test all optional parameters (webhook_url, continuation_token, media_type, country_code, active_status) with mocked responses. Verify response parsing and data flow through the node.",
+            "status": "pending",
+            "testStrategy": "Mock all possible API responses and error scenarios. Test parameter combinations and verify correct API calls are made. Ensure proper error propagation and response handling.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Add end-to-end tests for actual API integration",
+            "description": "Create end-to-end tests that run against the real Adyntel API using test credentials to verify complete functionality",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Set up test environment with real Adyntel API credentials (separate test account). Create e2e tests that make actual API calls to verify authentication, parameter handling, and response processing. Include tests for pagination using continuation_token and webhook functionality. Use environment variables for test credentials and make tests optional for CI environments without API access.",
+            "status": "pending",
+            "testStrategy": "Run against real API with test data. Verify complete workflow from input to output. Test rate limiting behavior and API response accuracy. Make tests configurable for different environments.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Set up test scripts in package.json",
+            "description": "Configure npm scripts for running different types of tests with appropriate coverage reporting and watch modes",
+            "dependencies": [
+              1
+            ],
+            "details": "Add test scripts to package.json including 'test' for all tests, 'test:unit' for unit tests only, 'test:integration' for integration tests, 'test:e2e' for end-to-end tests, 'test:watch' for development, and 'test:coverage' for coverage reports. Configure Jest to generate coverage reports in multiple formats (lcov, html, text) and set coverage thresholds.",
+            "status": "pending",
+            "testStrategy": "Verify all test scripts work correctly and produce expected output. Test coverage reporting generates accurate metrics. Ensure scripts work in both development and CI environments.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 6,
+            "title": "Configure CI/CD pipeline integration",
+            "description": "Set up continuous integration to automatically run tests on code changes with proper test reporting and coverage analysis",
+            "dependencies": [
+              5
+            ],
+            "details": "Configure GitHub Actions or similar CI/CD platform to run tests automatically on pull requests and pushes. Set up different test stages (unit, integration, e2e) with appropriate environment configurations. Configure test result reporting, coverage uploads to services like Codecov, and failure notifications. Add test status checks as required for merging pull requests.",
+            "status": "pending",
+            "testStrategy": "Test CI pipeline with sample commits and pull requests. Verify test results are properly reported and coverage metrics are tracked. Ensure pipeline fails appropriately when tests fail.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 7,
+            "title": "Achieve high code coverage with comprehensive test scenarios",
+            "description": "Implement additional test cases to achieve comprehensive code coverage and test edge cases, error scenarios, and complex workflows",
+            "dependencies": [
+              2,
+              3,
+              4
+            ],
+            "details": "Analyze code coverage reports to identify untested code paths. Add test cases for edge cases like empty responses, malformed API responses, network timeouts, and unusual parameter combinations. Test complex scenarios like pagination flows, webhook callbacks, and error recovery. Ensure coverage meets or exceeds 90% for critical code paths while maintaining test quality and avoiding trivial tests.",
+            "status": "pending",
+            "testStrategy": "Use coverage reports to guide test creation. Focus on meaningful test scenarios rather than just coverage numbers. Verify tests catch real bugs and regressions. Document test scenarios for future maintenance.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 8,
+        "recommendedSubtasks": 7,
+        "expansionPrompt": "Break down into: 1) Set up Jest testing framework and configuration, 2) Create unit tests for parameter validation and error handling, 3) Implement integration tests with mock API responses, 4) Add end-to-end tests for actual API integration, 5) Set up test scripts in package.json, 6) Configure CI/CD pipeline integration, 7) Achieve high code coverage with comprehensive test scenarios"
+      },
+      {
+        "id": 9,
+        "title": "Optimize Build Pipeline and Asset Management",
+        "description": "Enhance the TypeScript build process and Gulp configuration for production-ready distribution",
+        "details": "Review and optimize the build pipeline including TypeScript compilation, asset copying, and source map generation. Ensure all SVG icons are properly copied to the dist directory. Add build optimization for smaller bundle size. Update the gulpfile.js to handle any additional assets needed. Verify the dist directory structure matches n8n requirements exactly.",
+        "testStrategy": "Test build process on clean environment. Verify all assets are correctly copied. Test that built package can be installed and discovered by n8n. Check bundle size and optimization. Test with both local and production builds.",
+        "priority": "low",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": [],
+        "complexity": 5,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Divide into: 1) Review and optimize TypeScript compilation settings, 2) Enhance Gulp configuration for improved asset copying and optimization, 3) Add build optimization for smaller bundle size, 4) Verify dist directory structure matches n8n requirements and test installation process"
+      },
+      {
+        "id": 10,
+        "title": "Prepare for NPM Publication and Distribution",
+        "description": "Final preparation for publishing the package to npm registry including version management, licensing, and publication checklist",
+        "details": "Complete all steps needed for npm publication: finalize package.json metadata, verify all files are correctly included in the 'files' array, test the prepublishOnly script, update LICENSE file, create proper versioning strategy, and test the complete installation process. Prepare for potential n8n community node submission. Create publication checklist and ensure all requirements are met.",
+        "testStrategy": "Test npm pack and installation from tarball. Verify package works correctly after npm install. Test discovery by n8n after installation. Validate all metadata and ensure no sensitive information is included. Test on multiple environments to ensure compatibility.",
+        "priority": "medium",
+        "dependencies": [
+          "8"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Finalize package.json metadata and file inclusion settings",
+            "description": "Complete package.json metadata including author, repository, homepage, keywords, and verify 'files' array includes all necessary assets while excluding development files",
+            "dependencies": [],
+            "details": "Update package.json with correct author information, repository URL, homepage, description, and keywords for npm discoverability. Verify the 'files' array includes all required distribution files (dist/, credentials/, nodes/, package.json) and excludes unnecessary files. Ensure version follows semantic versioning. Validate all URLs and metadata for accuracy.",
+            "status": "pending",
+            "testStrategy": "Run npm pack to verify included files. Check package size and validate no sensitive files are included. Test metadata displays correctly on npm registry preview.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Update LICENSE file and verify legal compliance",
+            "description": "Create or update LICENSE file with appropriate open source license and ensure all code complies with licensing requirements",
+            "dependencies": [
+              1
+            ],
+            "details": "Add MIT or Apache 2.0 license file to project root. Verify all dependencies are compatible with chosen license. Update package.json license field to match LICENSE file. Ensure no proprietary code or sensitive information is included in the package. Review third-party dependencies for license compatibility.",
+            "status": "pending",
+            "testStrategy": "Validate LICENSE file format. Run license compatibility checks on dependencies. Verify package.json license field matches LICENSE file content.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Test npm pack and installation process thoroughly",
+            "description": "Comprehensively test the package creation and installation process including local tarball testing and dependency resolution",
+            "dependencies": [
+              2
+            ],
+            "details": "Run npm pack to create tarball and test installation from local package. Verify all files are correctly included and package structure matches n8n requirements. Test installation in clean environment to ensure all dependencies resolve correctly. Validate prepublishOnly script executes without errors. Test package works correctly after npm install.",
+            "status": "pending",
+            "testStrategy": "Test npm pack, install from tarball, verify package functionality. Test in multiple Node.js versions. Ensure n8n can discover and load the node after installation.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Prepare publication checklist and validate all requirements",
+            "description": "Create comprehensive pre-publication checklist covering npm requirements, n8n community standards, and quality assurance items",
+            "dependencies": [
+              3
+            ],
+            "details": "Create detailed checklist including: package.json completeness, README documentation quality, credential security, API functionality testing, build process verification, license compliance, version numbering, and n8n community node requirements. Validate each checklist item systematically before publication.",
+            "status": "pending",
+            "testStrategy": "Execute full checklist validation. Verify all requirements are met. Test package meets n8n community node standards and npm registry requirements.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Test n8n discovery and integration after installation",
+            "description": "Verify the package is correctly discovered by n8n after npm installation and functions properly in n8n workflows",
+            "dependencies": [
+              4
+            ],
+            "details": "Install package via npm in n8n environment and verify node appears in node palette. Test credential creation, API calls, and workflow execution. Verify SVG icons display correctly and all functionality works as expected. Test integration with multiple n8n instances to ensure compatibility. Validate error handling and user experience.",
+            "status": "pending",
+            "testStrategy": "Install package in fresh n8n instance. Test node discovery, credential setup, API calls, and workflow execution. Verify UI elements and error handling work correctly.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Structure as: 1) Finalize package.json metadata and file inclusion settings, 2) Update LICENSE file and verify legal compliance, 3) Test npm pack and installation process thoroughly, 4) Prepare publication checklist and validate all requirements, 5) Test n8n discovery and integration after installation"
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-10-13T21:20:59.428Z",
-      "taskCount": 2,
-      "completedCount": 2,
+      "lastModified": "2025-10-13T22:01:06.964Z",
+      "taskCount": 10,
+      "completedCount": 0,
       "tags": [
         "master"
-      ]
+      ],
+      "created": "2025-10-13T22:05:06.320Z",
+      "description": "Tasks for master context",
+      "updated": "2025-10-13T22:05:06.321Z"
     }
   }
 }

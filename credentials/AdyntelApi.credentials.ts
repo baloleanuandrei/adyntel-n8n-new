@@ -5,11 +5,11 @@ import {
 } from 'n8n-workflow';
 
 export class AdyntelApi implements ICredentialType {
-	name = 'AdyntelApi';
+	name = 'adyntelApi';
 	displayName = 'Adyntel API';
 	// Uses the link to this tutorial as an example
 	// Replace with your own docs links when building your own nodes
-	documentationUrl = 'https://docs.n8n.io/integrations/creating-nodes/build/declarative-style-node/';
+	documentationUrl = 'https://adyntel.com/docs';
 	properties: INodeProperties[] = [
 		{
 			displayName: 'API Key',
@@ -24,12 +24,6 @@ export class AdyntelApi implements ICredentialType {
 			type: 'string',
 			default: '',
 		},
-		{
-			displayName: 'Company Domain',
-			name: 'companyDomain',
-			type: 'string',
-			default: '',
-		},
 	];
 	authenticate: IAuthenticateGeneric = {
 		type: 'generic',
@@ -37,7 +31,6 @@ export class AdyntelApi implements ICredentialType {
 			body: {
 				'api_key': '={{$credentials.apiKey}}',
 				'email': '={{$credentials.email}}',
-				'company_domain': '={{$credentials.companyDomain}}'
 			}
 		},
 	};
