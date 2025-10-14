@@ -30,7 +30,11 @@ export class AdyntelApi implements ICredentialType {
 		properties: {
 			body: {
 				'api_key': '={{$credentials.apiKey}}',
+<<<<<<< HEAD
 				'email': '={{$credentials.email}}',
+=======
+				'email': '={{$credentials.email}}'
+>>>>>>> be6ae7bc460f8c0bb171b532485992b37bebaa06
 			}
 		},
 	};

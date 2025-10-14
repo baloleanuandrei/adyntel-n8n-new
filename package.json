@@ -1,22 +1,37 @@
 {
   "name": "n8n-nodes-adyntel",
   "version": "0.1.0",
-  "description": "n8n community node to integrate with Adyntel's Facebook Ads API. Get comprehensive Facebook advertising data including ads, creatives, targeting, and performance metrics.",
+  "description": "n8n community node to integrate with Adyntel's API. Get comprehensive Facebook, Google and LinkedIn advertising data including ads, copy and creatives.",
   "keywords": [
     "n8n-community-node-package",
     "adyntel",
     "facebook",
     "facebook ads",
+    "google",
+    "google ads",
+    "linkedin",
+    "linkedin ads",
     "advertising",
     "ad intelligence",
     "marketing",
+    "ad intelligence",
+    "ad intelligence api",
+    "competitive intelligence",
+    "competitive intelligence api",
+    "competitive analysis",
+    "competitive research",
+    "competition research",
+    "competition analysis",
+    "competition research api",
+    "competition analysis api",
+    "competition research api",
     "social media"
   ],
   "license": "MIT",
   "homepage": "https://github.com/adyntel/n8n-nodes-adyntel#readme",
   "author": {
     "name": "Adyntel",
-    "email": "support@adyntel.com"
+    "email": "hello@adyntel.com"
   },
   "repository": {
     "type": "git",
