@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "task-master": {
-      "command": "npx",
-      "args": ["-y", "@taskmaster/mcp-server"]
-    }
-  }
-}

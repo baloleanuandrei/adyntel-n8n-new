@@ -49,8 +49,5 @@
   },
   "peerDependencies": {
     "n8n-workflow": "*"
-  },
-  "dependencies": {
-    "task-master-ai": "^0.28.0"
   }
 }
