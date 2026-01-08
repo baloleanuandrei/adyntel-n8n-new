@@ -46,14 +46,27 @@ export class Adyntel implements INodeType {
 								body: {
 									api_key: '={{$credentials.apiKey}}',
 									email: '={{$credentials.email}}',
-									company_domain: '={{$credentials.companyDomain}}'
+									company_domain: '={{$parameter.companyDomain}}'
 								},
 							},
 						},
 					},
 				],
 				default: 'getFacebookAds',
-			}
+			},
+			{
+				displayName: 'Company Domain',
+				name: 'companyDomain',
+				type: 'string',
+				required: true,
+				displayOptions: {
+					show: {
+						operation: ['getFacebookAds'],
+					},
+				},
+				default: '',
+				description: 'The company domain to get Facebook ads data for (e.g., example.com)',
+			},
 		]
 	};
 }
