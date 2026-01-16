@@ -80,6 +80,7 @@ import {
 export class AdyntelApi implements ICredentialType {
 	name = 'adyntelApi';
 	displayName = 'Adyntel API';
+	// eslint-disable-next-line n8n-nodes-base/cred-class-field-documentation-url-miscased
 	documentationUrl = 'https://docs.adyntel.com';
 
 	properties: INodeProperties[] = [
