@@ -2,15 +2,15 @@ import { INodeType, INodeTypeDescription, NodeConnectionType } from 'n8n-workflo
 
 export class Adyntel implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Adyntel API',
+		displayName: 'Adyntel Facebook API',
 		name: 'adyntel',
 		icon: 'file:adyntel.svg',
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"]}}',
-		description: 'Learn if a domain is running ads or not using the Adyntel API',
+		description: 'Get Facebook ads data from Adyntel API',
 		defaults: {
-			name: 'Adyntel API',
+			name: 'Adyntel Facebook API',
 		},
 		inputs: ['main'] as NodeConnectionType[],
 		outputs: ['main'] as NodeConnectionType[],
@@ -37,46 +37,12 @@ export class Adyntel implements INodeType {
 					{
 						name: 'Get Facebook Ads',
 						value: 'getFacebookAds',
-						action: 'Get meta ads data',
+						action: 'Get facebook ads data',
 						description: 'Get Facebook ads data for a company domain',
 						routing: {
 							request: {
 								method: 'POST',
 								url: '/facebook',
-								body: {
-									api_key: '={{$credentials.apiKey}}',
-									email: '={{$credentials.email}}',
-									company_domain: '={{$parameter.companyDomain}}'
-								},
-							},
-						},
-					},
-					{
-						name: 'Get LinkedIn Ads',
-						value: 'getLinkedInAds',
-						action: 'Get linked in ads data',
-						description: 'Get LinkedIn ads data for a company domain',
-						routing: {
-							request: {
-								method: 'POST',
-								url: '/linkedin',
-								body: {
-									api_key: '={{$credentials.apiKey}}',
-									email: '={{$credentials.email}}',
-									company_domain: '={{$parameter.companyDomain}}'
-								},
-							},
-						},
-					},
-					{
-						name: 'Get Google Ads',
-						value: 'getGoogleAds',
-						action: 'Get google ads data',
-						description: 'Get Google ads data for a company domain',
-						routing: {
-							request: {
-								method: 'POST',
-								url: '/google',
 								body: {
 									api_key: '={{$credentials.apiKey}}',
 									email: '={{$credentials.email}}',
@@ -95,7 +61,7 @@ export class Adyntel implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						operation: ['getFacebookAds', 'getLinkedInAds', 'getGoogleAds'],
+						operation: ['getFacebookAds'],
 					},
 				},
 				default: '',
