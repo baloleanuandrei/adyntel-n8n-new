@@ -1,4 +1,4 @@
-import { INodeType, INodeTypeDescription } from 'n8n-workflow';
+import { INodeType, INodeTypeDescription, NodeConnectionType } from 'n8n-workflow';
 
 export class Adyntel implements INodeType {
 	description: INodeTypeDescription = {
@@ -12,8 +12,8 @@ export class Adyntel implements INodeType {
 		defaults: {
 			name: 'Adyntel API',
 		},
-		inputs: ['main'],
-		outputs: ['main'],
+		inputs: ['main'] as NodeConnectionType[],
+		outputs: ['main'] as NodeConnectionType[],
 		credentials: [
 			{
 				name: 'adyntelApi',
