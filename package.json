@@ -1,6 +1,6 @@
 {
-  "name": "n8n-node-adyntel",
-  "version": "0.1.0",
+  "name": "n8n-nodes-adyntel",
+  "version": "0.1.8",
   "description": "n8n node to call Adyntel's API services. Find out who's running ads on Meta, Linkedin or Google.",
   "keywords": [
     "n8n-community-node-package"
@@ -20,7 +20,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "build": "npx rimraf dist && tsc && gulp build:icons",
+    "build": "node -e \"require('fs').rmSync('dist', {recursive: true, force: true})\" && tsc && gulp build:icons && node -e \"const fs=require('fs');const f='dist/credentials/AdyntelApi.credentials.js';let c=fs.readFileSync(f,'utf8');c=c.replace(/this\\.helpers\\.request/g,'this.helpers.httpRequest');fs.writeFileSync(f,c);\"",
     "dev": "tsc --watch",
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes credentials package.json",
@@ -41,12 +41,24 @@
     ]
   },
   "devDependencies": {
-    "@typescript-eslint/parser": "~8.32.0",
-    "eslint": "^8.57.0",
+    "@eslint/js": "^9.39.2",
+    "@typescript-eslint/parser": "^8.32.0",
+    "eslint": "^9.18.0",
     "eslint-plugin-n8n-nodes-base": "^1.16.3",
     "gulp": "^5.0.0",
+    "jsonc-eslint-parser": "^2.4.2",
     "prettier": "^3.5.3",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.52.0"
+  },
+  "overrides": {
+    "axios": "^1.7.9",
+    "form-data": "^4.0.1",
+    "n8n-workflow": {
+      "axios": "^1.7.9",
+      "form-data": "^4.0.1"
+    },
+    "@typescript-eslint/utils": "^8.52.0"
   },
   "peerDependencies": {
     "n8n-workflow": "*"
